@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>April 2026 Budget Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #FFF8F0;
+  --card: #FFFFFF;
+  --mint: #A8E6CF;
+  --mint-dark: #6BCB9A;
+  --peach: #FFB7B2;
+  --peach-dark: #E8847D;
+  --lavender: #D4A5FF;
+  --lavender-dark: #B06EF0;
+  --sky: #A8D8EA;
+  --sky-dark: #6BB5D0;
+  --lemon: #FFEAA7;
+  --lemon-dark: #C9A800;
+  --text: #2D3436;
+  --text-light: #636E72;
+  --border: #EDE7E0;
+  --danger: #FF7675;
+  --green: #00B894;
+  --shadow: 0 2px 16px rgba(0,0,0,0.06);
+  --shadow-hover: 0 6px 24px rgba(0,0,0,0.10);
+  --radius: 18px;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: 'Nunito', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+body::before, body::after {
+  content:''; position:fixed; border-radius:50%; opacity:.22; z-index:0; pointer-events:none;
+  animation: floatBlob 18s ease-in-out infinite alternate;
+}
+body::before { width:420px;height:420px;background:radial-gradient(circle,var(--mint),transparent 70%);top:-80px;right:-100px; }
+body::after { width:360px;height:360px;background:radial-gradient(circle,var(--peach),transparent 70%);bottom:-60px;left:-80px;animation-delay:-9s; }
+@keyframes floatBlob { 0%{transform:translate(0,0) scale(1)} 100%{transform:translate(30px,20px) scale(1.08)} }
+@keyframes fadeUp { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
+
+.wrapper { position:relative;z-index:1;max-width:920px;margin:0 auto;padding:28px 20px 64px; }
+
+/* ---- HEADER ---- */
+header { text-align:center;margin-bottom:32px;animation:fadeUp .5s ease-out; }
+header .pill { display:inline-block;background:linear-gradient(135deg,var(--lavender),var(--sky));color:#fff;font-weight:800;font-size:.72rem;letter-spacing:2px;text-transform:uppercase;padding:5px 16px;border-radius:40px;margin-bottom:8px; }
+header h1 { font-family:'DM Serif Display',serif;font-size:2.2rem;line-height:1.15; }
+header h1 span { color:var(--lavender-dark); }
+header p { color:var(--text-light);font-size:.9rem;margin-top:4px; }
+
+/* ---- TABS ---- */
+.tabs { display:flex;gap:6px;margin-bottom:24px;flex-wrap:wrap;animation:fadeUp .5s ease-out .1s both; }
+.tab {
+  padding:9px 20px;border-radius:40px;border:2px solid var(--border);background:var(--card);
+  font-family:'Nunito',sans-serif;font-weight:700;font-size:.82rem;cursor:pointer;
+  transition:all .2s;color:var(--text-light);
+}
+.tab:hover { border-color:var(--lavender); color:var(--text); }
+.tab.active { background:linear-gradient(135deg,var(--lavender),var(--sky));color:#fff;border-color:transparent; }
+
+/* ---- PANELS ---- */
+.panel { display:none; }
+.panel.active { display:block;animation:fadeUp .4s ease-out; }
+
+/* ---- ACCOUNT CARDS ---- */
+.accounts { display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px; }
+.acct-card {
+  background:var(--card);border-radius:var(--radius);padding:22px;box-shadow:var(--shadow);
+  transition:transform .2s,box-shadow .2s;position:relative;overflow:hidden;
+}
+.acct-card:hover { transform:translateY(-2px);box-shadow:var(--shadow-hover); }
+.acct-card::after {
+  content:'';position:absolute;top:0;right:0;width:80px;height:80px;border-radius:50%;opacity:.12;
+}
+.acct-card.checking::after { background:var(--mint); }
+.acct-card.savings::after { background:var(--lavender); }
+.acct-card .acct-label { font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--text-light);margin-bottom:2px; }
+.acct-card .acct-icon { font-size:1.6rem;margin-bottom:6px; }
+.acct-card .acct-bal { font-family:'DM Serif Display',serif;font-size:1.8rem; }
+.acct-card.checking .acct-bal { color:var(--mint-dark); }
+.acct-card.savings .acct-bal { color:var(--lavender-dark); }
+
+/* ---- NET WORTH STRIP ---- */
+.net-strip {
+  background:var(--card);border-radius:var(--radius);padding:14px 22px;box-shadow:var(--shadow);
+  margin-bottom:24px;display:flex;justify-content:space-between;align-items:center;
+}
+.net-strip .ns-label { font-weight:700;font-size:.82rem; }
+.net-strip .ns-val { font-family:'DM Serif Display',serif;font-size:1.3rem;color:var(--sky-dark); }
+
+/* ---- GENERIC CARD ---- */
+.card {
+  background:var(--card);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow);margin-bottom:20px;
+}
+.card h2 { font-family:'DM Serif Display',serif;font-size:1.1rem;margin-bottom:16px; }
+
+/* ---- FORM ELEMENTS ---- */
+.field { margin-bottom:12px; }
+.field label { display:block;font-weight:700;font-size:.72rem;text-transform:uppercase;letter-spacing:1px;color:var(--text-light);margin-bottom:4px; }
+.field input,.field select {
+  width:100%;padding:10px 14px;border:2px solid var(--border);border-radius:12px;
+  font-family:'Nunito',sans-serif;font-size:.9rem;font-weight:600;outline:none;background:var(--bg);
+  transition:border-color .2s;
+}
+.field input:focus,.field select:focus { border-color:var(--lavender); }
+.row2 { display:grid;grid-template-columns:1fr 1fr;gap:12px; }
+.row3 { display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px; }
+.btn {
+  padding:11px 20px;border:none;border-radius:12px;font-family:'Nunito',sans-serif;
+  font-weight:800;font-size:.85rem;cursor:pointer;transition:transform .15s,box-shadow .2s;
+}
+.btn:active { transform:scale(.97); }
+.btn-primary { background:linear-gradient(135deg,var(--lavender),var(--sky));color:#fff;box-shadow:0 4px 14px rgba(168,133,255,.3); }
+.btn-primary:hover { box-shadow:0 6px 20px rgba(168,133,255,.45); }
+.btn-mint { background:linear-gradient(135deg,var(--mint),var(--sky));color:#fff;box-shadow:0 4px 14px rgba(107,203,154,.3); }
+.btn-peach { background:linear-gradient(135deg,var(--peach),var(--lemon));color:var(--text);box-shadow:0 4px 14px rgba(255,183,178,.3); }
+.btn-sm { padding:7px 14px;font-size:.78rem;border-radius:10px; }
+.btn-full { width:100%; }
+
+/* ---- TRANSACTION / SCHEDULED ROWS ---- */
+.tx-list { list-style:none; }
+.tx-item {
+  display:flex;align-items:center;justify-content:space-between;padding:11px 14px;
+  border-radius:14px;margin-bottom:6px;transition:background .15s;
+}
+.tx-item:hover { background:var(--bg); }
+.tx-left { display:flex;align-items:center;gap:12px;flex:1;min-width:0; }
+.tx-icon { width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.05rem;flex-shrink:0; }
+.tx-info { min-width:0; }
+.tx-name { font-weight:700;font-size:.88rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+.tx-date { font-size:.7rem;color:var(--text-light); }
+.tx-right { display:flex;align-items:center;gap:6px;flex-shrink:0; }
+.tx-amount { font-weight:800;font-size:.92rem;white-space:nowrap; }
+.tx-amount.income { color:var(--green); }
+.tx-amount.expense { color:var(--peach-dark); }
+.tx-amount.transfer { color:var(--sky-dark); }
+.tx-del { background:none;border:none;cursor:pointer;font-size:.82rem;opacity:.25;transition:opacity .15s; }
+.tx-del:hover { opacity:1; }
+.tx-badge {
+  font-size:.6rem;font-weight:800;text-transform:uppercase;letter-spacing:.8px;
+  padding:2px 7px;border-radius:6px;
+}
+.badge-income { background:#E8F8EE;color:var(--green); }
+.badge-expense { background:#FFF0EF;color:var(--peach-dark); }
+.badge-transfer { background:#E3F2FD;color:var(--sky-dark); }
+.badge-sched { background:#F3E5F5;color:var(--lavender-dark); }
+
+.empty-state { text-align:center;padding:24px;color:var(--text-light);font-size:.88rem; }
+.empty-state .big-emoji { font-size:2.2rem;display:block;margin-bottom:6px; }
+
+/* ---- PROGRESS ---- */
+.progress-section { margin-bottom:20px; }
+.progress-header { display:flex;justify-content:space-between;align-items:center;margin-bottom:8px; }
+.progress-header .title { font-weight:800;font-size:.82rem; }
+.progress-header .pct { font-weight:800;font-size:.82rem;color:var(--lavender-dark); }
+.progress-track { height:12px;border-radius:10px;background:#F0EBF8;overflow:hidden; }
+.progress-fill { height:100%;border-radius:10px;background:linear-gradient(90deg,var(--lavender),var(--sky));transition:width .6s cubic-bezier(.4,0,.2,1); }
+
+/* ---- CATEGORY ROWS ---- */
+.cat-row { display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px dashed var(--border);font-size:.86rem; }
+.cat-row:last-child { border-bottom:none; }
+.cat-dot { width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:8px; }
+.cat-name { font-weight:700;display:flex;align-items:center; }
+.cat-amount { font-weight:800; }
+
+/* ---- SETUP SECTION ---- */
+.setup-grid { display:grid;grid-template-columns:1fr 1fr;gap:16px; }
+
+/* ---- RESPONSIVE ---- */
+@media(max-width:700px){
+  .accounts{grid-template-columns:1fr}
+  .setup-grid{grid-template-columns:1fr}
+  .row2,.row3{grid-template-columns:1fr}
+  header h1{font-size:1.7rem}
+  .acct-card .acct-bal{font-size:1.4rem}
+  .tabs{gap:4px}
+  .tab{padding:7px 14px;font-size:.76rem}
+}
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+<header>
+  <div class="pill">April 2026</div>
+  <h1>Your <span>Budget</span> Tracker 🌸</h1>
+  <p>Income, expenses, transfers — all in one place.</p>
+</header>
+
+<!-- Tabs -->
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('dashboard')">🏠 Dashboard</button>
+  <button class="tab" onclick="switchTab('add')">✏️ Add Transaction</button>
+  <button class="tab" onclick="switchTab('scheduled')">📅 Scheduled</button>
+  <button class="tab" onclick="switchTab('setup')">⚙️ Setup</button>
+</div>
+
+<!-- ====== DASHBOARD ====== -->
+<div id="panel-dashboard" class="panel active">
+  <div class="accounts" id="acctCards"></div>
+  <div class="net-strip">
+    <span class="ns-label">💫 Total Across Accounts</span>
+    <span class="ns-val" id="netWorth">$0.00</span>
+  </div>
+
+  <div class="card">
+    <div class="progress-section">
+      <div class="progress-header">
+        <span class="title">Monthly Spending vs Income</span>
+        <span class="pct" id="pctLabel">0%</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progressFill" style="width:0%"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>📊 Spending by Category</h2>
+    <div id="catList"></div>
+  </div>
+
+  <div class="card">
+    <h2>📋 All Transactions</h2>
+    <ul class="tx-list" id="txList"></ul>
+  </div>
+</div>
+
+<!-- ====== ADD TRANSACTION ====== -->
+<div id="panel-add" class="panel">
+  <div class="card">
+    <h2>✏️ New Transaction</h2>
+    <div class="field">
+      <label>Type</label>
+      <select id="addType" onchange="onTypeChange()">
+        <option value="expense">🛍️ Expense</option>
+        <option value="income">💰 Income</option>
+        <option value="transfer">🔄 Transfer</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Description</label>
+      <input type="text" id="addDesc" placeholder="e.g. Morning latte ☕">
+    </div>
+    <div class="row2">
+      <div class="field">
+        <label>Amount ($)</label>
+        <input type="number" id="addAmt" placeholder="0.00" min="0" step="0.01">
+      </div>
+      <div class="field">
+        <label>Date</label>
+        <input type="date" id="addDate">
+      </div>
+    </div>
+    <div id="catField" class="field">
+      <label>Category</label>
+      <select id="addCat">
+        <option value="🍔 Food">🍔 Food</option>
+        <option value="🏠 Housing">🏠 Housing</option>
+        <option value="🚗 Transport">🚗 Transport</option>
+        <option value="🛒 Shopping">🛒 Shopping</option>
+        <option value="🎉 Fun">🎉 Fun</option>
+        <option value="💪 Fitness">💪 Fitness</option>
+        <option value="💡 Utilities">💡 Utilities</option>
+        <option value="💳 Subscriptions">💳 Subscriptions</option>
+        <option value="📦 Other">📦 Other</option>
+      </select>
+    </div>
+    <div id="acctFieldSingle" class="field">
+      <label>Account</label>
+      <select id="addAcct">
+        <option value="checking">🏦 Checking</option>
+        <option value="savings">🐖 Savings</option>
+      </select>
+    </div>
+    <div id="transferFields" class="row2" style="display:none">
+      <div class="field">
+        <label>From</label>
+        <select id="addFrom">
+          <option value="checking">🏦 Checking</option>
+          <option value="savings">🐖 Savings</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>To</label>
+        <select id="addTo">
+          <option value="savings">🐖 Savings</option>
+          <option value="checking">🏦 Checking</option>
+        </select>
+      </div>
+    </div>
+    <button class="btn btn-primary btn-full" onclick="addTransaction()">Add Transaction ✨</button>
+  </div>
+</div>
+
+<!-- ====== SCHEDULED ====== -->
+<div id="panel-scheduled" class="panel">
+  <div class="card">
+    <h2>📅 Add Scheduled Payment</h2>
+    <p style="font-size:.82rem;color:var(--text-light);margin:-8px 0 14px;">Pre-load known bills, subscriptions, and recurring payments.</p>
+    <div class="field">
+      <label>Type</label>
+      <select id="schType" onchange="onSchTypeChange()">
+        <option value="expense">🛍️ Expense</option>
+        <option value="income">💰 Income</option>
+        <option value="transfer">🔄 Transfer</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Description</label>
+      <input type="text" id="schDesc" placeholder="e.g. Rent, Netflix, Car payment">
+    </div>
+    <div class="row3">
+      <div class="field">
+        <label>Amount ($)</label>
+        <input type="number" id="schAmt" placeholder="0.00" min="0" step="0.01">
+      </div>
+      <div class="field">
+        <label>Date</label>
+        <input type="date" id="schDate">
+      </div>
+      <div class="field" id="schCatField">
+        <label>Category</label>
+        <select id="schCat">
+          <option value="🏠 Housing">🏠 Housing</option>
+          <option value="💡 Utilities">💡 Utilities</option>
+          <option value="💳 Subscriptions">💳 Subscriptions</option>
+          <option value="🚗 Transport">🚗 Transport</option>
+          <option value="🍔 Food">🍔 Food</option>
+          <option value="💪 Fitness">💪 Fitness</option>
+          <option value="📦 Other">📦 Other</option>
+        </select>
+      </div>
+    </div>
+    <div id="schAcctSingle" class="field">
+      <label>Account</label>
+      <select id="schAcct">
+        <option value="checking">🏦 Checking</option>
+        <option value="savings">🐖 Savings</option>
+      </select>
+    </div>
+    <div id="schTransferFields" class="row2" style="display:none">
+      <div class="field">
+        <label>From</label>
+        <select id="schFrom">
+          <option value="checking">🏦 Checking</option>
+          <option value="savings">🐖 Savings</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>To</label>
+        <select id="schTo">
+          <option value="savings">🐖 Savings</option>
+          <option value="checking">🏦 Checking</option>
+        </select>
+      </div>
+    </div>
+    <button class="btn btn-peach btn-full" onclick="addScheduled()">Add to Schedule 📌</button>
+  </div>
+
+  <div class="card">
+    <h2>📌 Scheduled Items</h2>
+    <p style="font-size:.82rem;color:var(--text-light);margin:-8px 0 14px;">These will appear in your transaction list. Post them when they occur or post all at once.</p>
+    <button class="btn btn-mint btn-sm" onclick="postAllScheduled()" style="margin-bottom:14px">Post All to Ledger ✅</button>
+    <ul class="tx-list" id="schList"></ul>
+  </div>
+</div>
+
+<!-- ====== SETUP ====== -->
+<div id="panel-setup" class="panel">
+  <div class="card">
+    <h2>⚙️ Starting Balances</h2>
+    <p style="font-size:.82rem;color:var(--text-light);margin:-8px 0 14px;">Set your account balances as of April 1.</p>
+    <div class="setup-grid">
+      <div class="field">
+        <label>🏦 Checking Balance</label>
+        <input type="number" id="setupChecking" placeholder="0.00" step="0.01">
+      </div>
+      <div class="field">
+        <label>🐖 Savings Balance</label>
+        <input type="number" id="setupSavings" placeholder="0.00" step="0.01">
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="saveSetup()" style="margin-top:6px">Save Balances 💾</button>
+  </div>
+
+  <div class="card">
+    <h2>🗑️ Reset Everything</h2>
+    <p style="font-size:.82rem;color:var(--text-light);margin:-8px 0 14px;">Clear all data and start fresh.</p>
+    <button class="btn btn-sm" style="background:var(--danger);color:#fff;" onclick="resetAll()">Reset All Data</button>
+  </div>
+</div>
+
+</div>
+
+<script>
+// ============ STATE ============
+let state = {
+  checkingStart: 0,
+  savingsStart: 0,
+  transactions: [],  // { id, type, desc, amount, date, cat?, acct?, from?, to?, fromSchedule? }
+  scheduled: [],     // same shape + posted:bool
+};
+
+const LS_KEY = 'april2026budget';
+
+function loadState() {
+  try {
+    const s = localStorage.getItem(LS_KEY);
+    if (s) state = JSON.parse(s);
+  } catch(e) {}
+  // seed income if first run
+  if (!localStorage.getItem(LS_KEY)) {
+    state.scheduled = [
+      { id: uid(), type:'income', desc:'Paycheck', amount:2350.27, date:'2026-04-01', acct:'checking', posted:false },
+      { id: uid(), type:'income', desc:'Paycheck', amount:2350.27, date:'2026-04-15', acct:'checking', posted:false },
+      { id: uid(), type:'income', desc:'Paycheck', amount:2350.27, date:'2026-04-29', acct:'checking', posted:false },
+    ];
+    save();
+  }
+}
+function save() {
+  try { localStorage.setItem(LS_KEY, JSON.stringify(state)); } catch(e) {}
+}
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+
+// ============ CATEGORY COLORS ============
+const catColors = {
+  '🍔 Food':{ bg:'#FFF3E0', accent:'#FF9800' },
+  '🏠 Housing':{ bg:'#E8F5E9', accent:'#4CAF50' },
+  '🚗 Transport':{ bg:'#E3F2FD', accent:'#2196F3' },
+  '🛒 Shopping':{ bg:'#FFF0F0', accent:'#E8847D' },
+  '🎉 Fun':{ bg:'#F3E5F5', accent:'#9C27B0' },
+  '💪 Fitness':{ bg:'#E0F7FA', accent:'#00ACC1' },
+  '💡 Utilities':{ bg:'#FFFDE7', accent:'#C9A800' },
+  '💳 Subscriptions':{ bg:'#FCE4EC', accent:'#E91E63' },
+  '📦 Other':{ bg:'#F5F5F5', accent:'#757575' },
+};
+
+// ============ HELPERS ============
+const fmt = n => (n<0?'-':'') + '$' + Math.abs(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+const el = id => document.getElementById(id);
+function esc(s){ const d=document.createElement('div');d.textContent=s;return d.innerHTML; }
+
+// ============ COMPUTE BALANCES ============
+function balances() {
+  let ck = state.checkingStart, sv = state.savingsStart;
+  state.transactions.forEach(t => {
+    if (t.type === 'income') {
+      if (t.acct === 'checking') ck += t.amount; else sv += t.amount;
+    } else if (t.type === 'expense') {
+      if (t.acct === 'checking') ck -= t.amount; else sv -= t.amount;
+    } else if (t.type === 'transfer') {
+      if (t.from === 'checking') { ck -= t.amount; sv += t.amount; }
+      else { sv -= t.amount; ck += t.amount; }
+    }
+  });
+  return { checking: ck, savings: sv, total: ck + sv };
+}
+
+// ============ RENDER ============
+function render() {
+  const b = balances();
+  const totalIncome = state.transactions.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0);
+  const totalExpense = state.transactions.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0);
+
+  // Account cards
+  el('acctCards').innerHTML = `
+    <div class="acct-card checking">
+      <div class="acct-icon">🏦</div>
+      <div class="acct-label">Checking</div>
+      <div class="acct-bal">${fmt(b.checking)}</div>
+    </div>
+    <div class="acct-card savings">
+      <div class="acct-icon">🐖</div>
+      <div class="acct-label">Savings</div>
+      <div class="acct-bal">${fmt(b.savings)}</div>
+    </div>
+  `;
+  el('netWorth').textContent = fmt(b.total);
+
+  // Progress
+  const pct = totalIncome > 0 ? Math.min((totalExpense/totalIncome)*100, 100) : 0;
+  el('pctLabel').textContent = `${fmt(totalExpense)} of ${fmt(totalIncome)} income (${pct.toFixed(0)}%)`;
+  el('progressFill').style.width = pct + '%';
+  el('progressFill').style.background = pct > 90
+    ? 'linear-gradient(90deg,var(--peach),var(--danger))'
+    : '';
+
+  // Categories
+  const byCat = {};
+  state.transactions.filter(t=>t.type==='expense').forEach(t=>{
+    byCat[t.cat] = (byCat[t.cat]||0) + t.amount;
+  });
+  const catDiv = el('catList');
+  if (!Object.keys(byCat).length) {
+    catDiv.innerHTML = '<div class="empty-state"><span class="big-emoji">🧘</span>No expenses yet.</div>';
+  } else {
+    catDiv.innerHTML = Object.entries(byCat).sort((a,b)=>b[1]-a[1]).map(([cat,amt])=>{
+      const c = catColors[cat]||catColors['📦 Other'];
+      return `<div class="cat-row"><span class="cat-name"><span class="cat-dot" style="background:${c.accent}"></span>${cat}</span><span class="cat-amount" style="color:${c.accent}">${fmt(amt)}</span></div>`;
+    }).join('');
+  }
+
+  // Transactions (sorted by date desc, then by add order)
+  const sorted = [...state.transactions].sort((a,b)=> b.date.localeCompare(a.date) || 0);
+  const txUl = el('txList');
+  if (!sorted.length) {
+    txUl.innerHTML = '<li class="empty-state"><span class="big-emoji">🌷</span>No transactions yet. Head to Add or post your scheduled items!</li>';
+  } else {
+    txUl.innerHTML = sorted.map(t => {
+      const emoji = t.type==='transfer' ? '🔄' : t.type==='income' ? '💰' : (t.cat||'📦').split(' ')[0];
+      const c = t.type==='expense' ? (catColors[t.cat]||catColors['📦 Other']) :
+                t.type==='income' ? {bg:'#E8F8EE',accent:'#00B894'} : {bg:'#E3F2FD',accent:'#6BB5D0'};
+      const badge = t.type==='income' ? '<span class="tx-badge badge-income">income</span>' :
+                    t.type==='transfer' ? '<span class="tx-badge badge-transfer">transfer</span>' :
+                    `<span class="tx-badge badge-expense">${esc(t.cat||'expense')}</span>`;
+      const amtClass = t.type==='income'?'income':t.type==='transfer'?'transfer':'expense';
+      const prefix = t.type==='income'?'+':'';
+      const acctLabel = t.type==='transfer' ? `${t.from} → ${t.to}` : (t.acct||'');
+      return `<li class="tx-item">
+        <div class="tx-left">
+          <div class="tx-icon" style="background:${c.bg}">${emoji}</div>
+          <div class="tx-info">
+            <div class="tx-name">${esc(t.desc)}</div>
+            <div class="tx-date">${t.date} · ${acctLabel} ${badge}</div>
+          </div>
+        </div>
+        <div class="tx-right">
+          <span class="tx-amount ${amtClass}">${prefix}${fmt(t.amount)}</span>
+          <button class="tx-del" title="Delete" onclick="delTx('${t.id}')">✕</button>
+        </div>
+      </li>`;
+    }).join('');
+  }
+
+  // Scheduled list
+  renderScheduled();
+}
+
+function renderScheduled() {
+  const ul = el('schList');
+  const items = state.scheduled.filter(s=>!s.posted);
+  if (!items.length) {
+    ul.innerHTML = '<li class="empty-state"><span class="big-emoji">✅</span>All scheduled items posted or none added yet.</li>';
+    return;
+  }
+  ul.innerHTML = items.sort((a,b)=>a.date.localeCompare(b.date)).map(s=>{
+    const emoji = s.type==='transfer'?'🔄':s.type==='income'?'💰':(s.cat||'📦').split(' ')[0];
+    const c = s.type==='income'?{bg:'#E8F8EE'}:s.type==='transfer'?{bg:'#E3F2FD'}:(catColors[s.cat]||catColors['📦 Other']);
+    return `<li class="tx-item">
+      <div class="tx-left">
+        <div class="tx-icon" style="background:${c.bg}">${emoji}</div>
+        <div class="tx-info">
+          <div class="tx-name">${esc(s.desc)}</div>
+          <div class="tx-date">${s.date} · <span class="tx-badge badge-sched">scheduled</span></div>
+        </div>
+      </div>
+      <div class="tx-right">
+        <span class="tx-amount">${fmt(s.amount)}</span>
+        <button class="btn btn-sm btn-mint" onclick="postScheduled('${s.id}')">Post</button>
+        <button class="tx-del" onclick="delScheduled('${s.id}')">✕</button>
+      </div>
+    </li>`;
+  }).join('');
+}
+
+// ============ TABS ============
+function switchTab(name) {
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el('panel-'+name).classList.add('active');
+  event.target.classList.add('active');
+  if (name==='dashboard') render();
+}
+
+// ============ TYPE TOGGLE ============
+function onTypeChange() {
+  const v = el('addType').value;
+  el('catField').style.display = v==='expense'?'':'none';
+  el('acctFieldSingle').style.display = v!=='transfer'?'':'none';
+  el('transferFields').style.display = v==='transfer'?'':'none';
+}
+function onSchTypeChange() {
+  const v = el('schType').value;
+  el('schCatField').style.display = v==='expense'?'':'none';
+  el('schAcctSingle').style.display = v!=='transfer'?'':'none';
+  el('schTransferFields').style.display = v==='transfer'?'':'none';
+}
+
+// ============ ADD TRANSACTION ============
+function addTransaction() {
+  const type = el('addType').value;
+  const desc = el('addDesc').value.trim();
+  const amount = parseFloat(el('addAmt').value);
+  const date = el('addDate').value;
+  if (!desc||isNaN(amount)||amount<=0||!date) return;
+
+  const t = { id:uid(), type, desc, amount, date };
+  if (type==='expense') { t.cat = el('addCat').value; t.acct = el('addAcct').value; }
+  else if (type==='income') { t.acct = el('addAcct').value; }
+  else { t.from = el('addFrom').value; t.to = el('addTo').value; }
+
+  state.transactions.push(t);
+  save(); render();
+  el('addDesc').value=''; el('addAmt').value='';
+  switchTab('dashboard');
+  document.querySelectorAll('.tab')[0].classList.add('active');
+}
+
+// ============ SCHEDULED ============
+function addScheduled() {
+  const type = el('schType').value;
+  const desc = el('schDesc').value.trim();
+  const amount = parseFloat(el('schAmt').value);
+  const date = el('schDate').value;
+  if (!desc||isNaN(amount)||amount<=0||!date) return;
+
+  const s = { id:uid(), type, desc, amount, date, posted:false };
+  if (type==='expense') { s.cat = el('schCat').value; s.acct = el('schAcct').value; }
+  else if (type==='income') { s.acct = el('schAcct').value; }
+  else { s.from = el('schFrom').value; s.to = el('schTo').value; }
+
+  state.scheduled.push(s);
+  save(); renderScheduled();
+  el('schDesc').value=''; el('schAmt').value='';
+}
+
+function postScheduled(id) {
+  const s = state.scheduled.find(x=>x.id===id);
+  if (!s) return;
+  s.posted = true;
+  const t = { ...s, id:uid(), fromSchedule:true };
+  delete t.posted;
+  state.transactions.push(t);
+  save(); render();
+}
+
+function postAllScheduled() {
+  state.scheduled.filter(s=>!s.posted).forEach(s=>{
+    s.posted = true;
+    const t = { ...s, id:uid(), fromSchedule:true };
+    delete t.posted;
+    state.transactions.push(t);
+  });
+  save(); render();
+}
+
+function delScheduled(id) {
+  state.scheduled = state.scheduled.filter(x=>x.id!==id);
+  save(); renderScheduled();
+}
+
+function delTx(id) {
+  state.transactions = state.transactions.filter(x=>x.id!==id);
+  save(); render();
+}
+
+// ============ SETUP ============
+function saveSetup() {
+  const ck = parseFloat(el('setupChecking').value);
+  const sv = parseFloat(el('setupSavings').value);
+  if (!isNaN(ck)) state.checkingStart = ck;
+  if (!isNaN(sv)) state.savingsStart = sv;
+  save(); render();
+  switchTab('dashboard');
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab')[0].classList.add('active');
+}
+
+function resetAll() {
+  if (!confirm('Clear all data and start fresh?')) return;
+  localStorage.removeItem(LS_KEY);
+  state = { checkingStart:0, savingsStart:0, transactions:[], scheduled:[
+    { id:uid(), type:'income', desc:'Paycheck', amount:2350.27, date:'2026-04-01', acct:'checking', posted:false },
+    { id:uid(), type:'income', desc:'Paycheck', amount:2350.27, date:'2026-04-15', acct:'checking', posted:false },
+    { id:uid(), type:'income', desc:'Paycheck', amount:2350.27, date:'2026-04-29', acct:'checking', posted:false },
+  ]};
+  save(); render();
+  el('setupChecking').value=''; el('setupSavings').value='';
+}
+
+// ============ AUTO-POST SCHEDULED ON LOAD ============
+function autoPostDue() {
+  const today = new Date().toISOString().split('T')[0];
+  let count = 0;
+  state.scheduled.filter(s => !s.posted && s.date <= today).forEach(s => {
+    s.posted = true;
+    const t = { ...s, id:uid(), fromSchedule:true };
+    delete t.posted;
+    state.transactions.push(t);
+    count++;
+  });
+  if (count > 0) save();
+  return count;
+}
+
+// ============ INIT ============
+loadState();
+const autoPosted = autoPostDue();
+el('addDate').value = new Date().toISOString().split('T')[0];
+el('schDate').value = '2026-04-01';
+el('setupChecking').value = state.checkingStart || '';
+el('setupSavings').value = state.savingsStart || '';
+render();
+if (autoPosted > 0) {
+  // Brief toast notification
+  const toast = document.createElement('div');
+  toast.textContent = `✅ Auto-posted ${autoPosted} scheduled item${autoPosted>1?'s':''}!`;
+  Object.assign(toast.style, {
+    position:'fixed',bottom:'24px',left:'50%',transform:'translateX(-50%)',
+    background:'#2D3436',color:'#fff',padding:'12px 24px',borderRadius:'14px',
+    fontFamily:'Nunito,sans-serif',fontWeight:'700',fontSize:'.88rem',
+    zIndex:'999',boxShadow:'0 4px 20px rgba(0,0,0,.2)',
+    animation:'fadeUp .4s ease-out'
+  });
+  document.body.appendChild(toast);
+  setTimeout(()=>toast.remove(), 3500);
+}
+</script>
+</body>
+</html>
